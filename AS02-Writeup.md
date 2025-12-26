@@ -1,6 +1,6 @@
 # AS02: Security Misconfigurations
 
-Target: http://10.49.x.x:5002   
+Target: http://10.x.x.x:5002   
 Flag: `THM{V3RB0S3_3RR0R_L34K}`
 
 ---
@@ -32,7 +32,7 @@ Retrieve user information by ID. User ID must be numeric.
 
 ```bash
 for i in {1..10}; do 
-  curl -s http://10.49.x.x:5002/api/user/$i
+  curl -s http://10.x.x.x:5002/api/user/$i
 done
 ```
 
@@ -47,7 +47,7 @@ done
 
 ```bash
 gobuster dir \
--u http://10.49.x.x:5002/ \
+-u http://10.x.x.x:5002/ \
 -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt \
 -t 30
 ```
@@ -66,7 +66,7 @@ gobuster dir \
 เมื่อทดลองเรียก endpoint ที่พบด้วยคำสั่ง
 
 ```bash
-curl -i http://10.49.x.x:5002/api/user/me
+curl -i http://10.x.x.x:5002/api/user/me
 ```
 
 ระบบตอบกลับด้วย error และแสดงข้อมูล debug ออกมา

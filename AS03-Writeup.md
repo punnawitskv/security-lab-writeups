@@ -1,6 +1,6 @@
 # AS03: Software Supply Chain Failures
 
-Target: http://10.49.x.x:5003   
+Target: http://10.x.x.x:5003   
 Flag: `THM{SUPPLY_CH41N_VULN3R4B1L1TY}`
 
 ---
@@ -48,7 +48,7 @@ if data == 'debug':
 ด้วยคำสั่ง `curl` ดังนี้
 
 ```bash
-curl -X POST http://10.49.x.x:5003/api/process \
+curl -X POST http://10.x.x.x:5003/api/process \
 -H "Content-Type: application/json" \
 -d '{"data":"debug"}'
 ```
