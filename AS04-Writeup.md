@@ -68,8 +68,8 @@ const KEY_SIZE = 128;
 
 Recipe: 
 
-- `From Base64`
-- `AES Decrypt`
+1. `From Base64`
+2. `AES Decrypt`
     - Key (`UTF8`): `my-secret-key-16`
     - Mode: `ECB`
     - Input: `Raw`
