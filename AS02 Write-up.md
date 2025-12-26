@@ -17,7 +17,7 @@
 
 เมื่อเข้าเว็บไซต์หลัก จะพบหน้าเว็บที่แสดงข้อมูลเกี่ยวกับ API โดยตรง ดังนี้
 
-```bash
+```json
 GET /api/user/<user_id>
 GET /api/user/123
 Retrieve user information by ID. User ID must be numeric.
@@ -55,7 +55,7 @@ gobuster dir \
 ```
 
 จากการสแกน พบ endpoint ที่น่าสนใจดังนี้
-```bash
+```json
 /api/user/me
 /api/user/current
 ```
@@ -84,7 +84,7 @@ curl -i http://10.49.156.80:5002/api/user/me
 
 จาก error message ที่ระบบแสดง ทำให้สามารถเห็น flag ได้ดังนี้
 
-```bash
+```json
 THM{V3RB0S3_3RR0R_L34K}
 ```
 
