@@ -65,10 +65,10 @@ curl -X POST http://10.49.x.x:5003/api/process \
 
 ```bash
 {
-  "admin_token": "admin_token_12345",
-  "flag": "THM{SUPPLY_CH41N_VULN3R4B1L1TY}",
-  "internal_secret": "internal_secret_key_2024",
-  "version": "1.2.3"
+    "admin_token": "admin_token_12345",
+    "flag": "THM{SUPPLY_CH41N_VULN3R4B1L1TY}",
+    "internal_secret": "internal_secret_key_2024",
+    "version": "1.2.3"
 }
 ```
 
