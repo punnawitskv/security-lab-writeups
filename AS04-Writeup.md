@@ -69,10 +69,10 @@ const KEY_SIZE = 128;
 Recipe
 1. From Base64
 2. AES Decrypt
-- Key (UTF8): my-secret-key-16
-- Mode: ECB
-- Input: Raw
-- Output: Raw
+    - Key (UTF8): my-secret-key-16
+    - Mode: ECB
+    - Input: Raw
+    - Output: Raw
 
 ```bash
 CONFIDENTIAL: The admin password is 'admin123'. Flag: THM{CRYPTO_FAILURE_H4RDCOD3D_K3Y}
