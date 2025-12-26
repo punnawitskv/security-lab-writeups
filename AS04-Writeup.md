@@ -19,7 +19,7 @@ Flag: `THM{CRYPTO_FAILURE_H4RDCOD3D_K3Y}`
 curl http://10.48.178.175:5004
 ```
 
-พบว่ามีการแสดง encrypted document และมีการโหลดไฟล์ JavaScript ชื่อ decrypt.js จากฝั่ง client
+พบว่ามีการแสดง `encrypted document` และมีการโหลดไฟล์ JavaScript ชื่อ `decrypt.js` จากฝั่ง client
 
 ```bash
 <body>
@@ -42,7 +42,7 @@ curl http://10.48.178.175:5004
 
 ## 3. การตรวจสอบไฟล์ decrypt.js
 
-จากการเปิดดูไฟล์ decrypt.js ด้วย `curl` ดังนี้
+จากการเปิดดูไฟล์ `decrypt.js` ด้วย `curl` ดังนี้
 
 ```bash
 curl http://10.48.178.175:5004/static/js/decrypt.js
