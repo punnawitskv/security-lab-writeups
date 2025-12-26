@@ -53,9 +53,9 @@ curl -X POST http://10.49.x.x:5003/api/process \
 -d '{"data":"debug"}'
 ```
 
--X POST ใช้เรียก API แบบ POST
--H "Content-Type: application/json" ระบุว่าข้อมูลที่ส่งเป็น JSON
--d ใช้ส่งข้อมูลไปใน request body
+- -X POST ใช้เรียก API แบบ POST
+- -H "Content-Type: application/json" ระบุว่าข้อมูลที่ส่งเป็น JSON
+- -d ใช้ส่งข้อมูลไปใน request body
 
 ---
 
