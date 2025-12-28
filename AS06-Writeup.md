@@ -91,7 +91,7 @@ curl -i http://10.x.x.x:5005/api/users
 เมื่อทดสอบ endpoint รวมดังนี้
 
 ```bash
-curl -i http://10.48.162.251:5005/api/messages
+curl -i http://10.x.x.x:5005/api/messages
 ```
 
 ระบบตอบกลับด้วย 404 Not Found ซึ่งบ่งชี้ว่า messages น่าจะถูกเข้าถึงผ่าน path ในรูปแบบ /api/messages/<username>
@@ -103,7 +103,7 @@ curl -i http://10.48.162.251:5005/api/messages
 จากรายชื่อผู้ใช้ที่ได้จาก /api/users จึงทำการทดสอบเข้าถึง messages ของผู้ใช้ระดับ admin โดยตรง
 
 ```bash
-curl -i http://10.48.162.251:5005/api/messages/admin
+curl -i http://10.x.x.x:5005/api/messages/admin
 ```
 
 ผลลัพธ์:
