@@ -16,7 +16,7 @@ Flag: `THM{CRYPTO_FAILURE_H4RDCOD3D_K3Y}`
 ตรวจสอบเว็บไซต์ด้วย `curl` ดังนี้
 
 ```bash
-curl http://10.48.178.175:5004
+curl http://10.x.x.x:5004
 ```
 
 พบว่ามีการแสดง `encrypted document` และมีการโหลดไฟล์ JavaScript ชื่อ `decrypt.js` จากฝั่ง client
@@ -45,7 +45,7 @@ curl http://10.48.178.175:5004
 เปิดดูไฟล์ `decrypt.js` ด้วย `curl` ดังนี้
 
 ```bash
-curl http://10.48.178.175:5004/static/js/decrypt.js
+curl http://10.x.x.x:5004/static/js/decrypt.js
 ```
 
 พบว่ามีการกำหนดค่า secret key และโหมดการเข้ารหัสไว้ในไฟล์ JavaScript ดังนี้
