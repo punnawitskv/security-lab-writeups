@@ -34,7 +34,7 @@ Flag: `THM{1NS3CUR3_D35IGN_4SSUMPT10N}`
 จึงทำการปลอม User-Agent เพื่อทดสอบว่าระบบแยก client อย่างไร
 
 ```bash
-curl -i -H "User-Agent: SecureChat/1.0 (Android)" http://10.48.162.251:5005/
+curl -i -H "User-Agent: SecureChat/1.0 (Android)" http://10.x.x.x:5005/
 ```
 
 ผลลัพธ์ที่ได้:
