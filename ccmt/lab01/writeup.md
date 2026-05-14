@@ -19,6 +19,7 @@ nmap -A -sC -sV 10.101.85.11
 - -sV : Version Detection
 
 now, i found the ssh, http, smb and etc. that running on terget ip.
+
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/01]
 └─$ nmap -A -sC -sV 10.101.85.11
