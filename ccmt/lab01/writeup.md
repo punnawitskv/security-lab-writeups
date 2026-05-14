@@ -555,4 +555,4 @@ whoami
 root
 ```
 
-now i'm root.
+now, i'm root.
