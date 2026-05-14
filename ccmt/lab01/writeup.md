@@ -14,9 +14,9 @@ find the service that running on that target ip.
 nmap -A -sC -sV 10.101.85.11
 ```
 
-- -A : Aggressive Mode
-- -sC : Version Detection
-- -sC : Default Script
+- -A : Aggressive Scan
+- -sC : Default Script Scan
+- -sV : Version Detection
 
 now, i found the ssh, http, smb and etc. that running on terget ip.
 ```
