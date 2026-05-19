@@ -199,9 +199,11 @@ john@Kioptrix4:~$ id
 uid=1001(john) gid=1001(john) groups=115(admin),1001(john)
 ```
 
+let's find the way to privilege escalation.
+
 ---
 
-## Local Enumeration
+## Privilege Escalation
 
 ### credential
 
@@ -211,7 +213,7 @@ find other user.
 cat /etc/passwd
 ```
 
-there’re 3 users in this machine.
+there are three users in this machine.
 
 ```
 john@Kioptrix4:~$ cat /etc/passwd

