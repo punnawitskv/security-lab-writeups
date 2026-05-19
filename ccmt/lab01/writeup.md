@@ -488,32 +488,9 @@ Compatible Payloads
    1   payload/generic/debug_trap                        .                normal  No     Generic x86 Debug Trap
    2   payload/generic/shell_bind_aws_ssm                .                normal  No     Command Shell, Bind SSM (via AWS API)
    3   payload/generic/shell_bind_tcp                    .                normal  No     Generic Command Shell, Bind TCP Inline
-   4   payload/generic/shell_reverse_tcp                 .                normal  No     Generic Command Shell, Reverse TCP Inline
-   5   payload/generic/ssh/interact                      .                normal  No     Interact with Established SSH Connection
-   6   payload/generic/tight_loop                        .                normal  No     Generic x86 Tight Loop
-   7   payload/linux/x86/adduser                         .                normal  No     Linux Add User
-   8   payload/linux/x86/chmod                           .                normal  No     Linux Chmod
-   9   payload/linux/x86/exec                            .                normal  No     Linux Execute Command
-   10  payload/linux/x86/meterpreter/bind_ipv6_tcp       .                normal  No     Linux Mettle x86, Bind IPv6 TCP Stager (Linux x86)
-   11  payload/linux/x86/meterpreter/bind_ipv6_tcp_uuid  .                normal  No     Linux Mettle x86, Bind IPv6 TCP Stager with UUID Support (Linux x86)
-   12  payload/linux/x86/meterpreter/bind_nonx_tcp       .                normal  No     Linux Mettle x86, Bind TCP Stager
-   13  payload/linux/x86/meterpreter/bind_tcp            .                normal  No     Linux Mettle x86, Bind TCP Stager (Linux x86)
-   14  payload/linux/x86/meterpreter/bind_tcp_uuid       .                normal  No     Linux Mettle x86, Bind TCP Stager with UUID Support (Linux x86)
-   15  payload/linux/x86/meterpreter/reverse_ipv6_tcp    .                normal  No     Linux Mettle x86, Reverse TCP Stager (IPv6)
-   16  payload/linux/x86/meterpreter/reverse_nonx_tcp    .                normal  No     Linux Mettle x86, Reverse TCP Stager
-   17  payload/linux/x86/meterpreter/reverse_tcp         .                normal  No     Linux Mettle x86, Reverse TCP Stager
-   18  payload/linux/x86/meterpreter/reverse_tcp_uuid    .                normal  No     Linux Mettle x86, Reverse TCP Stager
-   19  payload/linux/x86/metsvc_bind_tcp                 .                normal  No     Linux Meterpreter Service, Bind TCP
-   20  payload/linux/x86/metsvc_reverse_tcp              .                normal  No     Linux Meterpreter Service, Reverse TCP Inline
-   21  payload/linux/x86/read_file                       .                normal  No     Linux Read File
-   22  payload/linux/x86/shell/bind_ipv6_tcp             .                normal  No     Linux Command Shell, Bind IPv6 TCP Stager (Linux x86)
-   23  payload/linux/x86/shell/bind_ipv6_tcp_uuid        .                normal  No     Linux Command Shell, Bind IPv6 TCP Stager with UUID Support (Linux x86)
-   24  payload/linux/x86/shell/bind_nonx_tcp             .                normal  No     Linux Command Shell, Bind TCP Stager
-   25  payload/linux/x86/shell/bind_tcp                  .                normal  No     Linux Command Shell, Bind TCP Stager (Linux x86)
-   26  payload/linux/x86/shell/bind_tcp_uuid             .                normal  No     Linux Command Shell, Bind TCP Stager with UUID Support (Linux x86)
-   27  payload/linux/x86/shell/reverse_ipv6_tcp          .                normal  No     Linux Command Shell, Reverse TCP Stager (IPv6)
-   28  payload/linux/x86/shell/reverse_nonx_tcp          .                normal  No     Linux Command Shell, Reverse TCP Stager
-   29  payload/linux/x86/shell/reverse_tcp               .                normal  No     Linux Command Shell, Reverse TCP Stager
+.
+.
+.
    30  payload/linux/x86/shell/reverse_tcp_uuid          .                normal  No     Linux Command Shell, Reverse TCP Stager
    31  payload/linux/x86/shell_bind_ipv6_tcp             .                normal  No     Linux Command Shell, Bind TCP Inline (IPv6)
    32  payload/linux/x86/shell_bind_tcp                  .                normal  No     Linux Command Shell, Bind TCP Inline
