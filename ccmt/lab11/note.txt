@@ -1,0 +1,2 @@
+เปิด wp-login.php ไม่ได้ ทำให้ login ไม่ได้ (database error)
+
