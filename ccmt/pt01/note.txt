@@ -1,0 +1,6 @@
+สรุปข้อมูล Version และ Service หลังบ้าน
+องค์ประกอบ (Component)       เวอร์ชันที่ตรวจพบ       เบาะแสที่พบในโค้ดซอฟต์แวร์หลัก
+Tiny File Manager           v2.6.x              data-version="2.6" (บรรทัดที่ 113)
+CSS FrameworkBootstrap      v5.3.3              แหล่งดึงไฟล์จาก jsdelivr (บรรทัดที่ 12)
+JavaScript LibraryjQuery    v3.6.1              แหล่งดึงไฟล์จาก code.jquery.com (บรรทัดที่ 118)
+กลไกป้องกัน                   CSRF Token          <input type="hidden" name="token" ... /> (บรรทัดที่ 103)
